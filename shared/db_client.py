@@ -1,0 +1,98 @@
+import sqlite3
+
+
+CREATE_ADAPTERS_TABLE = """
+CREATE TABLE IF NOT EXISTS adapters (
+	id integer PRIMARY KEY,
+    guid text NOT NULL,
+    type text NOT NULL
+);"""
+
+
+CREATE_ADAPTERS_INDEX = """
+CREATE UNIQUE INDEX IF NOT EXISTS adapters_guid ON adapters(guid);
+"""
+
+CREATE_JOBS_TABLE = """
+CREATE TABLE IF NOT EXISTS tasks (
+	id integer PRIMARY KEY,
+    guid text NOT NULL,
+    state text NOT NULL,
+    cooldown integer NOT NULL,
+	adapter integer NOT NULL,
+    job_data text NOT NULL
+);"""
+
+CREATE_JOBS_INDEX = """
+CREATE UNIQUE INDEX IF NOT EXISTS tasks_guid ON tasks(guid);
+"""
+
+CREATE_JOBS_STATE_INDEX = """
+CREATE INDEX IF NOT EXISTS jobs_state ON tasks(adapter, state);
+"""
+
+CREATE_DATAPOINTS_TABLE = """
+CREATE TABLE IF NOT EXISTS datapoints (
+	id integer PRIMARY KEY,
+    guid text NOT NULL,
+    location integer NOT NULL,
+    date integer NOT NULL,
+    data_type text NOT NULL,
+    data_value integer NOT NULL
+);"""
+
+CREATE_DATAPOINTS_INDEX = """
+CREATE UNIQUE INDEX IF NOT EXISTS datapoints_guid ON datapoints(guid);
+"""
+
+
+class DBClient:
+    def __init__(self, db_path):
+        self._connection = sqlite3.connect(db_path)
+        self._cursor = self._connection.cursor()
+        self._init_db()
+    
+    def _execute(self, query):
+        self._cursor.execute(query)
+
+    def _init_db(self):
+        self._execute(CREATE_ADAPTERS_TABLE)
+        self._execute(CREATE_ADAPTERS_INDEX)
+        self._execute(CREATE_JOBS_TABLE)
+        self._execute(CREATE_JOBS_INDEX)
+        self._execute(CREATE_JOBS_STATE_INDEX)
+        self._execute(CREATE_DATAPOINTS_TABLE)
+        self._execute(CREATE_DATAPOINTS_INDEX)
+
+    def create_if_not_exists(self, table, data):
+        self.bulk_create_if_not_exists(table, [data])
+
+    def bulk_create_if_not_exists(self, table, data_list):
+        for data in data_list:
+            if self.select(table, {"guid": data["guid"]}):
+                continue
+            self._insert(table, data)
+        self._connection.commit()
+
+    def _insert(self, table, data):
+        keys, values = [], []
+        for key, value in data.items():
+            keys.append(f"'{key}'")
+            values.append(f"'{value}'")
+        key_strings, value_strings = ", ".join(keys), ", ".join(values)
+        insert_statement = f"INSERT INTO {table} ({key_strings}) VALUES ({value_strings})"        
+        self._execute(insert_statement)
+    
+    def select(self, table, params, limit=None):
+        select_clauses = " AND ".join([f'{key} = "{value}"' for key, value in params.items()])
+        select_statement = f"SELECT * FROM {table} where {select_clauses}" + (f" LIMIT {limit}" if limit else "")
+        self._execute(select_statement)
+        columns = [prop[0] for prop in self._cursor.description]
+        return [dict(zip(columns, row)) for row in self._cursor.fetchall()]
+    
+    def update(self, table, select_params, update_params):
+        update_clauses = ", ".join([f'{key} = "{value}"' for key, value in update_params.items()])
+        select_clauses = ", ".join([f'{key} = "{value}"' for key, value in select_params.items()])
+        update_statement = f"UPDATE {table} SET {update_clauses} WHERE {select_clauses}"
+        self._execute(update_statement)
+        self._connection.commit()

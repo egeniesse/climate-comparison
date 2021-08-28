@@ -1,0 +1,9 @@
+# py environment
+lib
+bin
+include
+
+__pycache__
+
+.vscode
+pyvenv.cfg
