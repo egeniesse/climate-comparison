@@ -14,6 +14,8 @@ class AQIAdapter(BaseAdapter):
         self.http_client = http_client
         self.db_client = db_client
         self.concurrent_tasks = 1
+        self.granularity = 60 * 60 * 24 * 7
+        self.version = 1
     
     async def process_tasks(self):
         while await self.process_task():
@@ -26,7 +28,7 @@ class AQIAdapter(BaseAdapter):
         job_data = next_task[0]["job_data"]
         query_params = {key: value for key, value in job_data.items() if key != "location"}
         query_params["appid"] = os.getenv("OPEN_WEATHER_API_KEY")
-        response = await self.http_client.get(OPEN_WEATHER_MAP_AQI_URL, query_params)
+        response = await self.http_client.get(OPEN_WEATHER_MAP_AQI_URL, params=query_params)
         res_json = await response.json()
         
         location = job_data["location"]
@@ -40,10 +42,10 @@ class AQIAdapter(BaseAdapter):
         tasks = []
         cur_time = constants.start_time
         while cur_time < constants.end_time:
-            for location, coords in constants.coords_by_location.items():
+            for location, metadata in constants.coords_by_location.items():
                 job_data = json.dumps({
-                    "lat": coords["lat"],
-                    "lon": coords["lon"],
+                    "lat": metadata["coords"]["lat"],
+                    "lon": metadata["coords"]["lon"],
                     "location": location,
                     "start": cur_time,
                     "end": cur_time + constants.granularity,
@@ -52,7 +54,6 @@ class AQIAdapter(BaseAdapter):
                     "state": "not_started",
                     "job_data": job_data,
                     "guid": str(uuid.uuid5(uuid.NAMESPACE_X500, job_data + "aqi_adapter")),
-                    "cooldown": 1,
                     "adapter": "aqi_adapter",
                 })
             cur_time += constants.granularity

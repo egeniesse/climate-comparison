@@ -1,7 +1,10 @@
 import asyncio
 import collections
+import logging
 import time
 import uuid
+
+logger = logging.getLogger(__name__)
 
 class ThrottledHttpClient:
     def __init__(self, session, cooldown, headers=None):
@@ -11,13 +14,14 @@ class ThrottledHttpClient:
         self.cooldown_expires = time.time()
         self.request_queue = collections.deque()
     
-    async def get(self, url, params):
+    async def get(self, url, **kwargs):
         await self._wait_for_turn()
         retry_count = 0
         while retry_count < 5:
             try:
-                return await self.session.get(url, params=params)
-            except Exception:
+                return await self.session.get(url, raise_for_status=True, **kwargs)
+            except Exception as e:
+                logger.warn(f"Failed to fetch data due to: {e}")
                 retry_count += 1
                 await asyncio.sleep(retry_count ** 2)
     
