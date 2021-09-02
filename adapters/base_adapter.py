@@ -39,13 +39,8 @@ class BaseAdapter(abc.ABC):
             tasks = self.get_tasks()
 
     def get_tasks(self):
-        select_params = [
-            {"adapter": self.type, "state": "not_started", "version": self.version},
-            {"adapter": self.type, "state": "failed", "version": self.version}
-        ]
-        tasks = []
-        for params in select_params:
-            tasks.extend(self.db_client.select("tasks", params, self.concurrent_tasks))
+        select_params = {"adapter": self.type, "state": ["not_started", "failed"], "version": self.version}
+        tasks = self.db_client.select("tasks", select_params, self.concurrent_tasks)
 
         for task in tasks:
             task["job_data"] = json.loads(task["job_data"])

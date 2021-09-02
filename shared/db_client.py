@@ -96,7 +96,14 @@ class DBClient:
         self._execute(insert_statement)
     
     def select(self, table, params, limit=None, selected="*"):
-        select_clauses = " AND ".join([f'{key} = "{value}"' for key, value in params.items()])
+        select_conditions = []
+        for key, value in params.items():
+            if type(value) == list:
+                wrapped_values = ", ".join([f'"{val}"' for val in value])
+                select_conditions.append(f'{key} IN ({wrapped_values})')
+            else:
+                select_conditions.append(f'{key} = "{value}"')
+        select_clauses = " AND ".join(select_conditions)
         select_statement = f"SELECT {selected} FROM {table} where {select_clauses}" + (f" LIMIT {limit}" if limit else "")
         self._execute(select_statement)
         columns = [prop[0] for prop in self._cursor.description]
