@@ -30,7 +30,6 @@ data_by_location = {
 api_rate_limits = {
     # 500 requests per hour
     "air_now": (60 * 60) / 500,
-    # 10,000 requests per day TODO: This is slowed down by half
+    # 10,000 requests per day
     "noaa_weather_data": (60 * 60 * 24) / 10000,
-    # "noaa_weather_data": 0,
 }
