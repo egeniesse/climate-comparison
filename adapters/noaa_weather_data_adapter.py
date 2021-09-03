@@ -4,7 +4,7 @@ import logging
 import os
 
 from adapters.base_adapter import BaseAdapter
-from shared.utils import data_point
+from shared.utils import data_point, mean
 
 NOAA_DATASET_IDS = {
     "GHCND": "Daily Summaries",
@@ -64,8 +64,8 @@ class NOAAWeatherDataAdapter(BaseAdapter):
             logger.info(f"Fetching batch of {self.page_size} points of weather data.")
             response = await self.http_client.get(NOAA_WEATHER_DATA_URL, params=query_params, headers=headers)
             res_json = await response.json()
-            results.extend(res_json["results"])
-            if len(res_json["results"]) < self.page_size:
+            results.extend(res_json.get("results", []))
+            if len(res_json.get("results", [])) < self.page_size:
                 return results
             query_params["offset"] += self.page_size
     
@@ -75,17 +75,9 @@ class NOAAWeatherDataAdapter(BaseAdapter):
             points_by_type[point["datatype"]].append(point["value"])
         mean_points_by_type = {}
         for key, points in points_by_type.items():
-            mean_points_by_type[key] = self._get_mean(points)
+            mean_points_by_type[key] = mean(points)
         return mean_points_by_type
     
-    def _get_mean(self, points):
-        sorted_points = sorted(points)
-        center = len(points) // 2
-        if len(points) % 2 == 0:
-            return round((sorted_points[center] + sorted_points[center]) / 2, 3)
-        else:
-            return sorted_points[center]
-
     def _create_job_data(self, location, metadata, cur_time):
         return {
             "date": cur_time,

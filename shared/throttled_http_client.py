@@ -17,7 +17,7 @@ class ThrottledHttpClient:
     async def get(self, url, **kwargs):
         await self._wait_for_turn()
         retry_count = 0
-        while retry_count < 10:
+        while retry_count < 15:
             try:
                 return await self.session.get(url, raise_for_status=True, **kwargs)
             except Exception as e:

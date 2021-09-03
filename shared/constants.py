@@ -9,11 +9,15 @@ end_time = time()
 # https://www.ncdc.noaa.gov/cdo-web/api/v2/locations?limit=1000&datasetid=GHCND&sortfield=id&locationcategoryid=CITY&sortorder=desc
 
 data_by_location = {
+    "Bend": {
+        "zip_code": 97703,
+        "noaa_city_id": "CITY:US410001",
+    },
+    "Boise": {
+        "zip_code": 83702,
+        "noaa_city_id": "CITY:US160001",
+    },
     "San Jose": {
-        "coords": {
-            "lat": 37.3394,
-            "lon": 121.895,
-        },
         "zip_code": 95124,
         "noaa_city_id": "CITY:US060032",
     },

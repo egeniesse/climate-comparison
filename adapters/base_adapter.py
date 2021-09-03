@@ -34,7 +34,7 @@ class BaseAdapter(abc.ABC):
                     self.set_task_state(task, "complete")
                     logger.info(f"{self.type} - Finished processing task: {task['guid']}, {task_count} left to go!")
                 except Exception:
-                    logger.warn(f"{self.type} - Failed to process task: {task['guid']}. Marking it as failed")
+                    logger.exception(f"{self.type} - Failed to process task: {task['guid']}")
                     self.set_task_state(task, "failed")
             tasks = self.get_tasks()
 
@@ -47,6 +47,7 @@ class BaseAdapter(abc.ABC):
         return tasks
     
     def set_task_state(self, task, state):
+        logger.info(f"{self.type} - Marking task {task['guid']} as {state}")
         self.db_client.update("tasks", {"guid": task["guid"]}, {"state": state})
 
     def generate_tasks(self):
