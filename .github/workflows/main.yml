@@ -28,3 +28,4 @@ jobs:
       - name: Run a multi-line script
         run: |
           python3 -m pip install -r requirements.txt
+          python3 -m unittest discover -s spec -p 'test_*.py'

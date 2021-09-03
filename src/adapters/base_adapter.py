@@ -3,8 +3,6 @@ import json
 import logging
 import uuid
 
-import shared.constants as constants
-
 logger = logging.getLogger(__name__)
 
 class BaseAdapter(abc.ABC):
@@ -40,7 +38,7 @@ class BaseAdapter(abc.ABC):
 
     def get_tasks(self):
         select_params = {"adapter": self.type, "state": ["not_started", "failed"], "version": self.version}
-        tasks = self.db_client.select("tasks", select_params, self.concurrent_tasks)
+        tasks = self.db_client.select("tasks", select_params, self.config["concurrent_tasks"])
 
         for task in tasks:
             task["job_data"] = json.loads(task["job_data"])
@@ -52,9 +50,9 @@ class BaseAdapter(abc.ABC):
 
     def generate_tasks(self):
         tasks = []
-        cur_time = constants.start_time
-        while cur_time < constants.end_time:
-            for location, metadata in constants.data_by_location.items():
+        cur_time = self.config["start_time"]
+        while cur_time < self.config["end_time"]:
+            for location, metadata in self.config["data_by_location"].items():
                 job_data = json.dumps(self._create_job_data(location, metadata, cur_time), sort_keys=True)
                 tasks.append({
                     "state": "not_started",
@@ -63,6 +61,6 @@ class BaseAdapter(abc.ABC):
                     "guid": str(uuid.uuid5(uuid.NAMESPACE_X500, f"{job_data}-{self.type}-{self.version}")),
                     "adapter": self.type,
                 })
-            cur_time += self.granularity
+            cur_time += self.config["granularity"]
         logger.info(f"{self.type} - Generating: {len(tasks)} tasks")
         self.db_client.bulk_create_if_not_exists("tasks", tasks)

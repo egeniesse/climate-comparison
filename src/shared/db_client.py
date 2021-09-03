@@ -54,7 +54,9 @@ CREATE INDEX IF NOT EXISTS datapoint_type ON datapoints(data_type, version, loca
 
 
 class DBClient:
-    def __init__(self, db_path):
+    def __init__(self, db_config):
+        db_path = db_config.get("path", ":memory:")
+        logger.info(f"Initilizing DB at path: {db_path}")
         self._connection = sqlite3.connect(db_path)
         self._cursor = self._connection.cursor()
         self._init_db()
