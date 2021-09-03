@@ -6,6 +6,7 @@ import logging
 import sys
 
 from adapters.air_now_aqi_adapter import AirNowAQIAdapter
+from adapters.noaa_weather_data_adapter import NOAAWeatherDataAdapter
 from shared.constants import api_rate_limits
 from shared.db_client import DBClient
 
@@ -18,10 +19,12 @@ async def main():
     async with aiohttp.ClientSession() as session:
         api_clients = {
             "air_now_client": ThrottledHttpClient(session, api_rate_limits["air_now"]),
+            "noaa_weather_client": ThrottledHttpClient(session, api_rate_limits["noaa_weather_data"]),
         }
 
         adapters = [
-            AirNowAQIAdapter(api_clients["air_now_client"], db_client)
+            AirNowAQIAdapter(api_clients["air_now_client"], db_client),
+            NOAAWeatherDataAdapter(api_clients["noaa_weather_client"], db_client),
         ]
         logger.info(f"Generating tasks for {len(adapters)} adapters")
         [adapter.generate_tasks() for adapter in adapters]

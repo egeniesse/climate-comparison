@@ -49,7 +49,7 @@ class AQIAdapter(BaseAdapter):
                     "location": location,
                     "start": cur_time,
                     "end": cur_time + constants.granularity,
-                })
+                }, sort_keys=True)
                 tasks.append({
                     "state": "not_started",
                     "job_data": job_data,
@@ -59,5 +59,3 @@ class AQIAdapter(BaseAdapter):
             cur_time += constants.granularity
         self.db_client.bulk_create_if_not_exists("tasks", tasks)
             
-
-        

@@ -96,15 +96,25 @@ class DBClient:
         self._execute(insert_statement)
     
     def select(self, table, params, limit=None, selected="*"):
-        select_clauses = " AND ".join([f'{key} = "{value}"' for key, value in params.items()])
-        select_statement = f"SELECT {selected} FROM {table} where {select_clauses}" + (f" LIMIT {limit}" if limit else "")
+        select_clauses = self._create_select_clause(params)
+        select_statement = f"SELECT {selected} FROM {table} WHERE {select_clauses}" + (f" LIMIT {limit}" if limit else "")
         self._execute(select_statement)
         columns = [prop[0] for prop in self._cursor.description]
         return [dict(zip(columns, row)) for row in self._cursor.fetchall()]
     
     def update(self, table, select_params, update_params):
         update_clauses = ", ".join([f'{key} = "{value}"' for key, value in update_params.items()])
-        select_clauses = ", ".join([f'{key} = "{value}"' for key, value in select_params.items()])
+        select_clauses = self._create_select_clause(select_params)
         update_statement = f"UPDATE {table} SET {update_clauses} WHERE {select_clauses}"
         self._execute(update_statement)
         self._connection.commit()
+    
+    def _create_select_clause(self, params):
+        select_conditions = []
+        for key, value in params.items():
+            if type(value) == list:
+                wrapped_values = ", ".join([f'"{val}"' for val in value])
+                select_conditions.append(f'{key} IN ({wrapped_values})')
+            else:
+                select_conditions.append(f'{key} = "{value}"')
+        return " AND ".join(select_conditions)

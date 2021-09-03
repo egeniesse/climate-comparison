@@ -1,8 +1,6 @@
 import datetime
-import json
 import logging
 import os
-import uuid
 
 from adapters.base_adapter import BaseAdapter
 from shared.utils import data_point
@@ -20,8 +18,7 @@ class AirNowAQIAdapter(BaseAdapter):
         self.granularity = 60 * 60 * 24
         self.version = 1
     
-    async def _process_task(self, task):
-        job_data = task["job_data"]
+    async def _process_task(self, job_data):
         params_to_keep = {"date", "zipCode"}
         query_params = {key: value for key, value in job_data.items() if key in params_to_keep}
         query_params.update({
@@ -41,9 +38,10 @@ class AirNowAQIAdapter(BaseAdapter):
 
     def _create_job_data(self, location, metadata, cur_time):
         date_string = datetime.datetime.fromtimestamp(cur_time).strftime("%Y-%m-%dT00-0000")
-        return {
+        job_data = {
             "zipCode": metadata["zip_code"],
             "date_timestamp": cur_time - (cur_time % (60 * 60 * 24)),
             "date": date_string,
             "location": location,
         }
+        return job_data

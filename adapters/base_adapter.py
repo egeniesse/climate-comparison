@@ -20,30 +20,34 @@ class BaseAdapter(abc.ABC):
     async def process_tasks(self):
         select_params = {"adapter": self.type, "state": "not_started", "version": self.version}
         task_info = self.db_client.select("tasks", select_params, selected="count(*) as count")
-        logger.info(f"Tasks left to proces for {self.type}: {task_info[0]['count']}")
+        task_count = task_info[0]["count"]
+        logger.info(f"{self.type} - Tasks left to proces for {self.type}: {task_count}")
         tasks = self.get_tasks()
         while tasks:
             for task in tasks:
+                task_count -= 1
                 try:
-                    logger.info(f"Processing task: {task['guid']}")
-                    to_insert = await self._process_task(task)
-                    logger.debug(f"Datapoints to insert: {to_insert}")
+                    logger.info(f"{self.type} - Processing task: {task['guid']}")
+                    to_insert = await self._process_task(task["job_data"])
+                    logger.debug(f"{self.type}: Datapoints to insert: {to_insert}")
                     self.db_client.bulk_create_if_not_exists("datapoints", to_insert)
                     self.set_task_state(task, "complete")
-                    logger.info(f"Finished processing task: {task['guid']}")
+                    logger.info(f"{self.type} - Finished processing task: {task['guid']}, {task_count} left to go!")
                 except Exception:
-                    logger.warn(f"Failed to process task: {task['guid']}. Marking it as failed")
+                    logger.exception(f"{self.type} - Failed to process task: {task['guid']}")
                     self.set_task_state(task, "failed")
             tasks = self.get_tasks()
 
     def get_tasks(self):
-        select_params = {"adapter": self.type, "state": "not_started", "version": self.version}
+        select_params = {"adapter": self.type, "state": ["not_started", "failed"], "version": self.version}
         tasks = self.db_client.select("tasks", select_params, self.concurrent_tasks)
+
         for task in tasks:
             task["job_data"] = json.loads(task["job_data"])
         return tasks
     
     def set_task_state(self, task, state):
+        logger.info(f"{self.type} - Marking task {task['guid']} as {state}")
         self.db_client.update("tasks", {"guid": task["guid"]}, {"state": state})
 
     def generate_tasks(self):
@@ -51,12 +55,12 @@ class BaseAdapter(abc.ABC):
         cur_time = constants.start_time
         while cur_time < constants.end_time:
             for location, metadata in constants.data_by_location.items():
-                job_data = json.dumps(self._create_job_data(location, metadata, cur_time))
+                job_data = json.dumps(self._create_job_data(location, metadata, cur_time), sort_keys=True)
                 tasks.append({
                     "state": "not_started",
                     "job_data": job_data,
                     "version": self.version,
-                    "guid": str(uuid.uuid5(uuid.NAMESPACE_X500, job_data + self.type)),
+                    "guid": str(uuid.uuid5(uuid.NAMESPACE_X500, f"{job_data}-{self.type}-{self.version}")),
                     "adapter": self.type,
                 })
             cur_time += self.granularity
