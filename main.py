@@ -1,21 +1,20 @@
-from shared.throttled_http_client import ThrottledHttpClient
+from sqlite3.dbapi2 import adapt
 import aiohttp
 import asyncio
 import asyncio
 import logging
 import sys
 
-from adapters.air_now_aqi_adapter import AirNowAQIAdapter
-from adapters.noaa_weather_data_adapter import NOAAWeatherDataAdapter
-from shared.constants import api_rate_limits
-from shared.db_client import DBClient
+from src.adapters.air_now_aqi_adapter import AirNowAQIAdapter
+from src.adapters.noaa_weather_data_adapter import NOAAWeatherDataAdapter
+from src.shared.throttled_http_client import ThrottledHttpClient
+from config import api_rate_limits, adapter_config, db_config
+from src.shared.db_client import DBClient
 
 logger = logging.getLogger(__name__)
-SQLITE_DB_LOCATION = "/Users/ericgeniesse/.cache/climate-comparison.db"
-
 
 async def main():
-    db_client = DBClient(SQLITE_DB_LOCATION)
+    db_client = DBClient(db_config)
     async with aiohttp.ClientSession() as session:
         api_clients = {
             "air_now_client": ThrottledHttpClient(session, api_rate_limits["air_now"]),
@@ -23,8 +22,8 @@ async def main():
         }
 
         adapters = [
-            AirNowAQIAdapter(api_clients["air_now_client"], db_client),
-            NOAAWeatherDataAdapter(api_clients["noaa_weather_client"], db_client),
+            AirNowAQIAdapter(api_clients["air_now_client"], db_client, adapter_config),
+            NOAAWeatherDataAdapter(api_clients["noaa_weather_client"], db_client, adapter_config),
         ]
         logger.info(f"Generating tasks for {len(adapters)} adapters")
         [adapter.generate_tasks() for adapter in adapters]
