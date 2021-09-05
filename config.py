@@ -31,6 +31,18 @@ adapter_config = {
             "zip_code": 80014,
             "noaa_city_id": "CITY:US080004",
         },
+        "San Diego, CA": {
+            "zip_code": 92109,
+            "noaa_city_id": "CITY:US060030",
+        },
+        "Austin, TX": {
+            "zip_code": 73301,
+            "noaa_city_id": "CITY:US480005",
+        },
+        "Raleigh, NC": {
+            "zip_code": 27513,
+            "noaa_city_id": "CITY:US370017",
+        },
     }
 }
 

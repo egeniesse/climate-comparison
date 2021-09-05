@@ -1,0 +1,516 @@
+{
+    "version": 2,
+    "inquiries": [
+        {
+            "id": "RRXilZ9VsBEH0AzLDPO18",
+            "query": "SELECT\n\tAVG(d.data_value) as week_average,\n    MAX(d.data_value) as week_max,\n    MIN(d.data_value) as week_min,\n    MIN(datetime(d.date, 'unixepoch')) as date_string,\n\td.location as location,\n    d.data_type as data_type\nFROM datapoints as d\nWHERE\n\td.version = 2 AND\n\td.data_type = 'NOAA-TMAX' OR\n    d.data_type = 'NOAA-TMIN'\nGROUP BY\n    strftime('%Y-%M-%W', datetime(d.date, 'unixepoch')),\n    location,\n    data_type\n    \nORDER BY d.date DESC",
+            "viewType": "chart",
+            "viewOptions": {
+                "data": [
+                    {
+                        "type": "scatter",
+                        "mode": "lines",
+                        "x": null,
+                        "xsrc": "date_string",
+                        "meta": {
+                            "columnNames": {
+                                "x": "date_string",
+                                "y": "week_average"
+                            }
+                        },
+                        "transforms": [
+                            {
+                                "type": "groupby",
+                                "groupssrc": "location",
+                                "groups": null,
+                                "styles": [
+                                    {
+                                        "target": "Denver",
+                                        "value": {
+                                            "visible": "legendonly",
+                                            "name": "Denver (Max Temp)"
+                                        }
+                                    },
+                                    {
+                                        "target": "San Jose",
+                                        "value": {
+                                            "visible": "legendonly",
+                                            "name": "San Jose (Max Temp)"
+                                        }
+                                    },
+                                    {
+                                        "target": "Seattle",
+                                        "value": {
+                                            "visible": "legendonly",
+                                            "name": "Seattle (Max Temp)"
+                                        }
+                                    }
+                                ],
+                                "meta": {
+                                    "columnNames": {
+                                        "groups": "location"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "filter",
+                                "target": null,
+                                "targetsrc": "data_type",
+                                "meta": {
+                                    "columnNames": {
+                                        "target": "data_type"
+                                    }
+                                },
+                                "value": [
+                                    "NOAA-TMAX"
+                                ],
+                                "operation": "{}"
+                            }
+                        ],
+                        "xaxis": "x",
+                        "yaxis": "y",
+                        "visible": true,
+                        "y": null,
+                        "ysrc": "week_average"
+                    },
+                    {
+                        "type": "scatter",
+                        "mode": "lines",
+                        "stackgroup": null,
+                        "meta": {
+                            "columnNames": {
+                                "x": "date_string",
+                                "y": "week_average"
+                            }
+                        },
+                        "transforms": [
+                            {
+                                "type": "groupby",
+                                "groupssrc": "location",
+                                "groups": null,
+                                "styles": [
+                                    {
+                                        "target": "NOAA-TMAX",
+                                        "value": {}
+                                    },
+                                    {
+                                        "target": "NOAA-TMIN",
+                                        "value": {}
+                                    },
+                                    {
+                                        "target": "San Jose",
+                                        "value": {
+                                            "visible": true,
+                                            "name": "San Jose (Min Temp)"
+                                        }
+                                    },
+                                    {
+                                        "target": "Seattle",
+                                        "value": {
+                                            "visible": true,
+                                            "name": "Seattle (Min Temp)"
+                                        }
+                                    },
+                                    {
+                                        "target": "Denver",
+                                        "value": {
+                                            "visible": true,
+                                            "name": "Denver (Min Temp)"
+                                        }
+                                    }
+                                ],
+                                "meta": {
+                                    "columnNames": {
+                                        "groups": "location"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "filter",
+                                "target": null,
+                                "targetsrc": "data_type",
+                                "enabled": true,
+                                "meta": {
+                                    "columnNames": {
+                                        "target": "data_type"
+                                    }
+                                },
+                                "value": "NOAA-TMIN"
+                            }
+                        ],
+                        "x": null,
+                        "xsrc": "date_string",
+                        "visible": true,
+                        "y": null,
+                        "ysrc": "week_average"
+                    }
+                ],
+                "layout": {
+                    "xaxis": {
+                        "range": [
+                            "2010-01-01",
+                            "2011-08-08"
+                        ],
+                        "autorange": true,
+                        "domain": [
+                            0,
+                            1
+                        ],
+                        "anchor": "y",
+                        "side": "bottom",
+                        "type": "date"
+                    },
+                    "yaxis": {
+                        "range": [
+                            -5.919099206349207,
+                            76.25288492063493
+                        ],
+                        "autorange": true,
+                        "domain": [
+                            0,
+                            1
+                        ],
+                        "type": "linear"
+                    },
+                    "autosize": true,
+                    "mapbox": {
+                        "style": "open-street-map"
+                    },
+                    "title": {
+                        "text": "Max/ Min Temperatures"
+                    }
+                },
+                "frames": []
+            },
+            "name": "Max/Min Temperatures",
+            "createdAt": "2021-08-30T02:00:45.042Z"
+        },
+        {
+            "id": "yQxD_-qZSo0YZMyrahRGX",
+            "query": "SELECT\n\tAVG(data_value) as week_average,\n    SUM(CASE WHEN data_value < 75 THEN 1 ELSE 0 END) as days_less_than_75,\n    SUM(CASE WHEN data_value >= 75 THEN 1 ELSE 0 END) as days_above_75,\n    SUM(CASE WHEN data_value >= 85 THEN 1 ELSE 0 END) as days_above_85,\n    SUM(CASE WHEN data_value >= 150 THEN 1 ELSE 0 END) as days_above_150,\n    COUNT(*) as total_days,\n    MAX(data_value) as month_max,\n    MIN(data_value) as month_min,\n    strftime('%Y-%m', datetime(date, 'unixepoch')) as month,\n    strftime('%Y', datetime(date, 'unixepoch')) as year,\n\tlocation as location\nFROM datapoints\nWHERE\n\tdata_type = 'aqi-PM2.5' and\n    version = 1\nGROUP BY\n    strftime('%Y-%m', datetime(date, 'unixepoch')),\n    strftime('%Y', datetime(date, 'unixepoch')),\n    location\n    ",
+            "viewType": "chart",
+            "viewOptions": {
+                "data": [
+                    {
+                        "type": "bar",
+                        "mode": "markers",
+                        "orientation": "v",
+                        "meta": {
+                            "columnNames": {
+                                "x": "year",
+                                "y": "days_above_85"
+                            }
+                        },
+                        "transforms": [
+                            {
+                                "type": "groupby",
+                                "groupssrc": "location",
+                                "groups": null,
+                                "styles": [
+                                    {
+                                        "target": "Denver",
+                                        "value": {
+                                            "visible": true
+                                        }
+                                    },
+                                    {
+                                        "target": "San Jose",
+                                        "value": {
+                                            "visible": true
+                                        }
+                                    },
+                                    {
+                                        "target": "Seattle",
+                                        "value": {
+                                            "visible": true
+                                        }
+                                    },
+                                    {
+                                        "target": "Boise",
+                                        "value": {
+                                            "visible": true
+                                        }
+                                    },
+                                    {
+                                        "target": "Bend",
+                                        "value": {
+                                            "visible": true
+                                        }
+                                    }
+                                ],
+                                "meta": {
+                                    "columnNames": {
+                                        "groups": "location"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "aggregate",
+                                "groupssrc": "year",
+                                "groups": null,
+                                "meta": {
+                                    "columnNames": {
+                                        "groups": "year"
+                                    }
+                                },
+                                "aggregations": [
+                                    null,
+                                    {
+                                        "func": "sum",
+                                        "target": "y",
+                                        "enabled": true
+                                    }
+                                ]
+                            }
+                        ],
+                        "visible": true,
+                        "x": null,
+                        "xsrc": "year",
+                        "y": null,
+                        "ysrc": "days_above_85"
+                    }
+                ],
+                "layout": {
+                    "xaxis": {
+                        "range": [
+                            2009.5,
+                            2021.5
+                        ],
+                        "autorange": true,
+                        "title": {
+                            "text": "Year",
+                            "font": {
+                                "size": 14
+                            }
+                        },
+                        "showline": false,
+                        "showticklabels": true,
+                        "tickfont": {
+                            "size": 11
+                        },
+                        "automargin": false,
+                        "separatethousands": false,
+                        "nticks": 13,
+                        "tickmode": "linear",
+                        "tick0": 0,
+                        "type": "linear"
+                    },
+                    "yaxis": {
+                        "range": [
+                            0,
+                            29.473684210526315
+                        ],
+                        "autorange": true,
+                        "title": {
+                            "text": "Count"
+                        },
+                        "type": "linear"
+                    },
+                    "autosize": true,
+                    "mapbox": {
+                        "style": "open-street-map"
+                    },
+                    "title": {
+                        "text": "Days with AQI Above 85 (Equivalent to Purple Air 100)"
+                    }
+                },
+                "frames": []
+            },
+            "name": "AQI By Location v2",
+            "createdAt": "2021-09-01T19:26:08.199Z"
+        },
+        {
+            "id": "RAOVELMwAWw_BlcQKPWvk",
+            "query": "SELECT\n    SUM(CASE WHEN d.data_value >= 0.001 THEN 1 ELSE 0 END) as light_and_above,\n    SUM(CASE WHEN d.data_value >= 0.3 THEN 1 ELSE 0 END) as moderate_and_above,\n    SUM(CASE WHEN d.data_value >= 0.6 THEN 1 ELSE 0 END) as heavy_and_above,\n    SUM(CASE WHEN d.data_value > 0 THEN 1 ELSE 0 END) as any_precip,\n    COUNT(*) AS count,\n    strftime('%Y-%m', datetime(d.date, 'unixepoch')) as month,\n    strftime('%Y', datetime(d.date, 'unixepoch')) as year,\n\td.location as location,\n    d.data_type as data_type\nFROM datapoints as d\nWHERE\n\td.version = 3 AND\n\td.data_type = 'NOAA-PRCP'\n\nGROUP BY\n    strftime('%Y-%m', datetime(d.date, 'unixepoch')),\n    strftime('%Y', datetime(d.date, 'unixepoch')),\n    location,\n    data_type\n",
+            "viewType": "chart",
+            "viewOptions": {
+                "data": [
+                    {
+                        "type": "bar",
+                        "mode": "markers",
+                        "orientation": "v",
+                        "x": null,
+                        "xsrc": "month",
+                        "meta": {
+                            "columnNames": {
+                                "x": "month",
+                                "y": "any_precip"
+                            }
+                        },
+                        "transforms": [
+                            {
+                                "type": "groupby",
+                                "groupssrc": "location",
+                                "groups": null,
+                                "styles": [
+                                    {
+                                        "target": "Denver",
+                                        "value": {}
+                                    },
+                                    {
+                                        "target": "San Jose",
+                                        "value": {}
+                                    },
+                                    {
+                                        "target": "Seattle",
+                                        "value": {}
+                                    }
+                                ],
+                                "meta": {
+                                    "columnNames": {
+                                        "groups": "location"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "aggregate",
+                                "groupssrc": "year",
+                                "groups": null,
+                                "meta": {
+                                    "columnNames": {
+                                        "groups": "year"
+                                    }
+                                },
+                                "aggregations": [
+                                    null,
+                                    {
+                                        "func": "sum",
+                                        "target": "y",
+                                        "enabled": true
+                                    }
+                                ],
+                                "enabled": true
+                            }
+                        ],
+                        "y": null,
+                        "ysrc": "any_precip"
+                    }
+                ],
+                "layout": {
+                    "autosize": true,
+                    "mapbox": {
+                        "style": "open-street-map"
+                    },
+                    "title": {
+                        "text": "Days with Precipitation Per Month"
+                    },
+                    "xaxis": {
+                        "range": [
+                            "2009-07-02 12:00",
+                            "2021-07-02 12:00"
+                        ],
+                        "autorange": true,
+                        "showspikes": false,
+                        "type": "date"
+                    },
+                    "yaxis": {
+                        "range": [
+                            0,
+                            236.8421052631579
+                        ],
+                        "autorange": true,
+                        "showspikes": false,
+                        "type": "linear"
+                    }
+                },
+                "frames": []
+            },
+            "name": "Rainy Days Per Month",
+            "createdAt": "2021-09-01T19:26:21.487Z"
+        },
+        {
+            "id": "YrUcJJhTJHBomsAl8maIW",
+            "query": "WITH\nbad_air_days_by_location AS (\n\tSELECT\n    \tSUM(CASE WHEN data_value > 85 THEN 1 ELSE 0 END) AS bad_air_day,\n    \tstrftime('%Y-%m-%d', datetime(date, 'unixepoch')) AS date_string,\n\t\tlocation AS location\n\tFROM datapoints\n\tWHERE data_type = 'aqi-PM2.5' AND version = 1\n\tGROUP BY strftime('%Y-%m-%d', datetime(date, 'unixepoch')), location\n),\nwet_days_by_location AS (\n\tSELECT\n\t    SUM(CASE WHEN data_value > 0.1 THEN 1 ELSE 0 END) AS wet_day,\n\t\tstrftime('%Y-%m-%d', datetime(date, 'unixepoch')) AS date_string,\n\t\tlocation AS location\n\tFROM datapoints\n\tWHERE data_type = 'NOAA-PRCP' AND version = 3\n\tGROUP BY strftime('%Y-%m-%d', datetime(date, 'unixepoch')), location\n),\nbad_temp_by_location AS (\n\tSELECT\n\t    SUM(CASE WHEN data_value NOT BETWEEN 50 AND 95 THEN 1 ELSE 0 END) AS bad_temp_day,\n    \tstrftime('%Y-%m-%d', datetime(date, 'unixepoch')) AS date_string,\n\t\tlocation AS location\n\tFROM datapoints\n\tWHERE data_type = 'NOAA-TMAX' AND version = 3\n\tGROUP BY strftime('%Y-%m-%d', datetime(date, 'unixepoch')), location\n),\nwindy_days_by_location AS (\n\tSELECT\n\t    SUM(CASE WHEN data_value >= 20 THEN 1 ELSE 0 END) AS windy_day,\n    \tstrftime('%Y-%m-%d', datetime(date, 'unixepoch')) AS date_string,\n\t\tlocation AS location\n\tFROM datapoints\n\tWHERE data_type = 'NOAA-AWND' AND version = 3\n\tGROUP BY strftime('%Y-%m-%d', datetime(date, 'unixepoch')), location\n),\n\nidealized_day_scoring AS (\n  \tSELECT bad_temp_days.*,\n\t\t(\n      \t\t(CASE WHEN bad_temp_days.bad_temp_day = 0 THEN 1 ELSE 0 END) +\n    \t\t(CASE WHEN windy_days.windy_day = 0 THEN 1 ELSE 0 END) +\n    \t\t(CASE WHEN bad_air_days.bad_air_day = 0 THEN 1 ELSE 0 END) +\n\t  \t\t(CASE WHEN wet_days.wet_day = 0 THEN 1 ELSE 0 END)\n    \t) as ideal_day_index\n    FROM bad_temp_by_location bad_temp_days\n\tJOIN wet_days_by_location wet_days\n  \t\tON bad_temp_days.date_string = wet_days.date_string AND bad_temp_days.location = wet_days.location\n\tJOIN bad_air_days_by_location bad_air_days\n  \t\tON bad_temp_days.date_string = bad_air_days.date_string AND bad_temp_days.location = bad_air_days.location\n\tJOIN windy_days_by_location windy_days\n  \t\tON bad_temp_days.date_string = windy_days.date_string AND bad_temp_days.location = windy_days.location\n)\n\nSELECT\n   \tstrftime('%Y', datetime(date_string)) as year,\n    location,\n    SUM(CASE WHEN ideal_day_index = 4 THEN 1 ELSE 0 END) AS ideal_days,\n    SUM(CASE WHEN ideal_day_index >= 3 THEN 1 ELSE 0 END) AS index_3_or_better,\n    SUM(CASE WHEN ideal_day_index <= 2 THEN 1 ELSE 0 END) AS index_2_or_worse,\n    COUNT(*) AS total_days\nFROM idealized_day_scoring\nGROUP BY strftime('%Y', datetime(date_string)), location\n",
+            "viewType": "chart",
+            "viewOptions": {
+                "data": [
+                    {
+                        "type": "bar",
+                        "mode": "markers",
+                        "orientation": "v",
+                        "meta": {
+                            "columnNames": {
+                                "x": "year",
+                                "y": "ideal_days"
+                            }
+                        },
+                        "y": null,
+                        "ysrc": "ideal_days",
+                        "transforms": [
+                            {
+                                "type": "groupby",
+                                "groupssrc": "location",
+                                "groups": null,
+                                "styles": [
+                                    {
+                                        "target": "Denver",
+                                        "value": {
+                                            "visible": true
+                                        }
+                                    },
+                                    {
+                                        "target": "San Jose",
+                                        "value": {
+                                            "visible": true
+                                        }
+                                    },
+                                    {
+                                        "target": "Seattle",
+                                        "value": {
+                                            "visible": true
+                                        }
+                                    },
+                                    {
+                                        "target": "San Diego, CA",
+                                        "value": {
+                                            "visible": true
+                                        }
+                                    }
+                                ],
+                                "meta": {
+                                    "columnNames": {
+                                        "groups": "location"
+                                    }
+                                },
+                                "enabled": true
+                            }
+                        ],
+                        "visible": true,
+                        "x": null,
+                        "xsrc": "year"
+                    }
+                ],
+                "layout": {
+                    "xaxis": {
+                        "range": [
+                            2009.5,
+                            2021.5
+                        ],
+                        "autorange": true,
+                        "showspikes": false,
+                        "type": "linear"
+                    },
+                    "yaxis": {
+                        "range": [
+                            0,
+                            355.7894736842105
+                        ],
+                        "autorange": true,
+                        "showspikes": false,
+                        "type": "linear"
+                    },
+                    "autosize": true,
+                    "mapbox": {
+                        "style": "open-street-map"
+                    },
+                    "title": {
+                        "text": "Outdoor Days Per Year"
+                    }
+                },
+                "frames": []
+            },
+            "name": "Ideal Days By Location",
+            "createdAt": "2021-09-02T22:34:00.577Z"
+        }
+    ]
+}
